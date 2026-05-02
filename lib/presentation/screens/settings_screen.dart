@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pilgrims_companion/core/services/reading_progress_service.dart';
 import '../../app/app_constants.dart';
 import '../../core/cubit/settings_cubit/settings_cubit.dart';
 import '../../core/cubit/settings_cubit/settings_state.dart';
@@ -301,9 +302,9 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
 
-          const Divider(height: 1, indent: 16, endIndent: 16),
+       const Divider(height: 1, indent: 16, endIndent: 16),
 
-          // Clear Guides Cache
+          // Reading Progress
           ListTile(
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -313,27 +314,97 @@ class SettingsScreen extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.purple.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red,
+                Icons.auto_stories_rounded,
+                color: Colors.purple,
               ),
             ),
             title: const Text(
-              'Clear Downloaded Guides',
+              'Clear Reading Progress',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: const Text('Remove all guides (not Quran)'),
+            subtitle: const Text(
+              'Reset progress for all guides',
+            ),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => _showClearCacheDialog(context),
+            onTap: () => _showClearProgressDialog(context),
           ),
+      
+      
         ],
       ),
     );
   }
 
+void _showClearProgressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Row(
+          children: [
+            Icon(
+              Icons.auto_stories_rounded,
+              color: Colors.purple,
+            ),
+            SizedBox(width: 4),
+            FittedBox(child: Text('Clear Reading Progress',style: TextStyle(fontSize: 14),)),
+          ],
+        ),
+        content: const Text(
+          'This will reset reading progress for all guides.\n\n'
+          'You will lose track of where you left off.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await ReadingProgressService()
+                  .clearAllProgress();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 8),
+                        Text('Reading progress cleared'),
+                      ],
+                    ),
+                    backgroundColor: Colors.purple,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Clear',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   // ── Quran Card ────────────────────────────────────────────────────────
 
   Widget _buildQuranCard(BuildContext context) {
@@ -494,9 +565,9 @@ class SettingsScreen extends StatelessWidget {
                 color: Colors.purple.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
+              child: const Text(
                 AppConstants.appVersion,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.purple,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,

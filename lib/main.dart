@@ -7,25 +7,35 @@ import 'core/services/storage_service.dart';
 import 'core/cubit/settings_cubit/settings_cubit.dart';
 import 'core/cubit/settings_cubit/settings_state.dart';
 import 'core/services/download_service.dart';
+import 'core/utils/error_handler.dart';
+import 'core/utils/app_review_service.dart';
 import 'presentation/screens/splash_screen.dart';
+const List<String> rtlLanguages = ['ar', 'ur', 'fa'];
 
 void main() async {
-  // Ensure Flutter is initialized
+  // Ensure Flutter initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Storage Service
+  // Initialize error handler
+  ErrorHandler.initialize();
+
+  // Initialize storage
   await StorageService.getInstance();
 
-  // Set system UI overlay style
+  // Track app launches
+  await AppReviewService.incrementLaunchCount();
+
+  // Set system UI
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
-  // Allow all orientations (tablet support)
+  // Set orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -43,7 +53,6 @@ class PilgrimsCompanionApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // Global Settings Cubit (theme management)
         BlocProvider<SettingsCubit>(
           create: (_) => SettingsCubit(
             storageService: StorageService.instance,
@@ -53,7 +62,6 @@ class PilgrimsCompanionApp extends StatelessWidget {
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
-          // Determine theme mode
           ThemeMode themeMode = ThemeMode.light;
           if (state is SettingsLoaded) {
             themeMode = state.themeMode == 'dark'
@@ -61,37 +69,55 @@ class PilgrimsCompanionApp extends StatelessWidget {
                 : ThemeMode.light;
           }
 
+         // Get current language for RTL
+          final languageCode =
+              StorageService.instance.getLanguage() ?? 'en';
+          final isRTL = rtlLanguages.contains(languageCode);
+
           return MaterialApp(
-            // App Info
             title: 'Pilgrim\'s Companion',
             debugShowCheckedModeBanner: false,
-
-            // Themes
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-
-            // Router
             onGenerateRoute: AppRouter.generateRoute,
-
-            // Home
             home: const SplashScreen(),
 
-            // Builder for global configurations
+            // RTL Support
+            locale: Locale(languageCode),
+            supportedLocales: const [
+              Locale('en'),
+              Locale('ar'),
+              Locale('ur'),
+              Locale('tr'),
+              Locale('id'),
+              Locale('fr'),
+              Locale('bn'),
+              Locale('ru'),
+              Locale('fa'),
+              Locale('hi'),
+              Locale('ha'),
+              Locale('so'),
+            ],
             builder: (context, child) {
-              return MediaQuery(
-                // Prevent text scaling from breaking UI
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(
-                    MediaQuery.of(context)
-                        .textScaleFactor
-                        .clamp(0.8, 1.3),
+              return Directionality(
+                textDirection: isRTL
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
+                child: MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(
+                      MediaQuery.of(context)
+                          .textScaleFactor
+                          .clamp(0.8, 1.3),
+                    ),
                   ),
+                  child: child!,
                 ),
-                child: child!,
               );
             },
           );
+      
         },
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // ── Brand Colors ───────────────────────────────────────────────────────
+  // ── Brand Colors ───────────────────────────────────────
   static const Color primaryGreen = Color(0xFF2D5F3F);
   static const Color lightGreen = Color(0xFF5E9B76);
   static const Color darkGreen = Color(0xFF1A3D28);
@@ -12,7 +12,7 @@ class AppTheme {
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkCard = Color(0xFF2A2A2A);
 
-  // ── Light Theme ────────────────────────────────────────────────────────
+  // ── Light Theme ────────────────────────────────────────
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -23,9 +23,9 @@ class AppTheme {
       primary: primaryGreen,
       secondary: goldAccent,
       surface: Colors.white,
-      background: creamBackground,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
+      onSurface: Colors.black87,
     ),
 
     // AppBar
@@ -43,14 +43,15 @@ class AppTheme {
       iconTheme: IconThemeData(color: Colors.white),
     ),
 
-    // Cards
-   cardTheme: CardThemeData(
-    color: Colors.white,
-    elevation: 2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+    // ✅ Light Cards - White
+    cardTheme: CardThemeData(
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
     ),
-  ),
 
     // Elevated Button
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -83,7 +84,10 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        side: const BorderSide(color: primaryGreen, width: 1.5),
+        side: const BorderSide(
+          color: primaryGreen,
+          width: 1.5,
+        ),
         textStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -145,15 +149,22 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+        borderSide: const BorderSide(
+          color: Color(0xFFDDDDDD),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+        borderSide: const BorderSide(
+          color: Color(0xFFDDDDDD),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: primaryGreen, width: 2),
+        borderSide: const BorderSide(
+          color: primaryGreen,
+          width: 2,
+        ),
       ),
       filled: true,
       fillColor: Colors.white,
@@ -172,13 +183,17 @@ class AppTheme {
     // SnackBar
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.grey.shade800,
+      contentTextStyle: const TextStyle(
+        color: Colors.white,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
     ),
   );
 
-  // ── Dark Theme ─────────────────────────────────────────────────────────
+  // ── Dark Theme ──────────────────────────────────────────
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
@@ -189,9 +204,9 @@ class AppTheme {
       primary: lightGreen,
       secondary: goldAccent,
       surface: darkSurface,
-      background: darkBackground,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
+      onSurface: Colors.white,
     ),
 
     // AppBar
@@ -209,14 +224,15 @@ class AppTheme {
       iconTheme: IconThemeData(color: Colors.white),
     ),
 
-    // Cards
+    // ✅ Dark Cards - Dark Color
     cardTheme: CardThemeData(
-    color: Colors.white,
-    elevation: 2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      color: darkCard,
+      elevation: 2,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
     ),
-  ),
 
     // Elevated Button
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -249,7 +265,10 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        side: const BorderSide(color: lightGreen, width: 1.5),
+        side: const BorderSide(
+          color: lightGreen,
+          width: 1.5,
+        ),
         textStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -311,15 +330,22 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF444444)),
+        borderSide: const BorderSide(
+          color: Color(0xFF444444),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF444444)),
+        borderSide: const BorderSide(
+          color: Color(0xFF444444),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: lightGreen, width: 2),
+        borderSide: const BorderSide(
+          color: lightGreen,
+          width: 2,
+        ),
       ),
       filled: true,
       fillColor: darkCard,
@@ -339,161 +365,12 @@ class AppTheme {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: darkCard,
+      contentTextStyle: const TextStyle(
+        color: Colors.white,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
     ),
   );
 }
-// import 'package:flutter/material.dart';
-
-// class AppTheme {
-//   // Colors
-//   static const Color primaryGreen = Color(0xFF2D5F3F);
-//   static const Color lightGreen = Color(0xFF5E9B76);
-//   static const Color goldAccent = Color(0xFFD4AF37);
-//   static const Color creamBackground = Color(0xFFF5F5DC);
-//   static const Color darkBackground = Color(0xFF1A1A1A);
-  
-//   // Light Theme
-//   static ThemeData lightTheme = ThemeData(
-//     useMaterial3: true,
-//     brightness: Brightness.light,
-//     primaryColor: primaryGreen,
-//     scaffoldBackgroundColor: creamBackground,
-    
-//     colorScheme: const ColorScheme.light(
-//       primary: primaryGreen,
-//       secondary: goldAccent,
-//       surface: Colors.white,
-//       background: creamBackground,
-//     ),
-    
-//     appBarTheme: const AppBarTheme(
-//       backgroundColor: primaryGreen,
-//       foregroundColor: Colors.white,
-//       elevation: 0,
-//       centerTitle: true,
-//       titleTextStyle: TextStyle(
-//         fontSize: 20,
-//         fontWeight: FontWeight.w600,
-//         color: Colors.white,
-//       ),
-//     ),
-    
-//     cardTheme: CardThemeData(
-//     color: Colors.white,
-//     elevation: 2,
-//     shape: RoundedRectangleBorder(
-//       borderRadius: BorderRadius.circular(16),
-//     ),
-//   ),
-
-//     elevatedButtonTheme: ElevatedButtonThemeData(
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: primaryGreen,
-//         foregroundColor: Colors.white,
-//         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         textStyle: const TextStyle(
-//           fontSize: 16,
-//           fontWeight: FontWeight.w600,
-//         ),
-//       ),
-//     ),
-    
-//     textTheme: const TextTheme(
-//       displayLarge: TextStyle(
-//         fontSize: 32,
-//         fontWeight: FontWeight.bold,
-//         color: primaryGreen,
-//       ),
-//       displayMedium: TextStyle(
-//         fontSize: 24,
-//         fontWeight: FontWeight.w600,
-//         color: primaryGreen,
-//       ),
-//       bodyLarge: TextStyle(
-//         fontSize: 16,
-//         color: Colors.black87,
-//       ),
-//       bodyMedium: TextStyle(
-//         fontSize: 14,
-//         color: Colors.black54,
-//       ),
-//     ),
-//   );
-  
-//   // Dark Theme
-//   static ThemeData darkTheme = ThemeData(
-//     useMaterial3: true,
-//     brightness: Brightness.dark,
-//     primaryColor: lightGreen,
-//     scaffoldBackgroundColor: darkBackground,
-    
-//     colorScheme: const ColorScheme.dark(
-//       primary: lightGreen,
-//       secondary: goldAccent,
-//       surface: Color(0xFF2A2A2A),
-//       background: darkBackground,
-//     ),
-    
-//     appBarTheme: const AppBarTheme(
-//       backgroundColor: Color(0xFF2A2A2A),
-//       foregroundColor: Colors.white,
-//       elevation: 0,
-//       centerTitle: true,
-//       titleTextStyle: TextStyle(
-//         fontSize: 20,
-//         fontWeight: FontWeight.w600,
-//         color: Colors.white,
-//       ),
-//     ),
-    
-//     cardTheme: CardThemeData(
-//   color: const Color(0xFF2A2A2A),
-//   elevation: 2,
-//   shape: RoundedRectangleBorder(
-//     borderRadius: BorderRadius.circular(16),
-//   ),
-// ),
-    
-//     elevatedButtonTheme: ElevatedButtonThemeData(
-//       style: ElevatedButton.styleFrom(
-//         backgroundColor: lightGreen,
-//         foregroundColor: Colors.white,
-//         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         textStyle: const TextStyle(
-//           fontSize: 16,
-//           fontWeight: FontWeight.w600,
-//         ),
-//       ),
-//     ),
-    
-//     textTheme: const TextTheme(
-//       displayLarge: TextStyle(
-//         fontSize: 32,
-//         fontWeight: FontWeight.bold,
-//         color: Colors.white,
-//       ),
-//       displayMedium: TextStyle(
-//         fontSize: 24,
-//         fontWeight: FontWeight.w600,
-//         color: Colors.white,
-//       ),
-//       bodyLarge: TextStyle(
-//         fontSize: 16,
-//         color: Colors.white70,
-//       ),
-//       bodyMedium: TextStyle(
-//         fontSize: 14,
-//         color: Colors.white60,
-//       ),
-//     ),
-//   );
-// }

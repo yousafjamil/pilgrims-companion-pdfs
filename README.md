@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # pilgrims_companion
 
 A new Flutter project.
@@ -15,3 +16,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# pilgrims-companion-pdfs
+PDF content for Pilgrim's Companion App
+>>>>>>> a49dd47c5c90567876f3aa3b50e54a1e53eff0d7

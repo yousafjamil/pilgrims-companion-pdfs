@@ -116,7 +116,7 @@ class QuranDownloadTile extends StatelessWidget {
               child: Text('📖', style: TextStyle(fontSize: 40)),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
           Text(
             'Quran',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -124,7 +124,7 @@ class QuranDownloadTile extends StatelessWidget {
               fontSize: 16,
             ),
           ),
-          const SizedBox(height: 4),
+          // const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -152,7 +152,7 @@ class QuranDownloadTile extends StatelessWidget {
   Widget _buildDownloadingState(
       BuildContext context, QuranDownloadInProgress state) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -167,8 +167,8 @@ class QuranDownloadTile extends StatelessWidget {
                   value: state.progress,
                   strokeWidth: 3,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    const Color(0xFFD4AF37),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    Color(0xFFD4AF37),
                   ),
                 ),
               ),
@@ -176,7 +176,7 @@ class QuranDownloadTile extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           Text(
             'Quran',
@@ -189,7 +189,7 @@ class QuranDownloadTile extends StatelessWidget {
           const SizedBox(height: 4),
 
           Text(
-            '${state.progressPercentage}',
+            state.progressPercentage,
             style: const TextStyle(
               fontSize: 13,
               color: Color(0xFFD4AF37),
@@ -248,9 +248,9 @@ class QuranDownloadTile extends StatelessWidget {
               color: Colors.orange.withOpacity(0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Icon(Icons.download_rounded, size: 12, color: Colors.orange),
                 SizedBox(width: 4),
                 Text(
@@ -302,9 +302,9 @@ class QuranDownloadTile extends StatelessWidget {
               color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Icon(Icons.refresh_rounded, size: 12, color: Colors.red),
                 SizedBox(width: 4),
                 Text(

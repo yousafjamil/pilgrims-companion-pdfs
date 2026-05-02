@@ -21,8 +21,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       description:
           'Your complete offline guide for Hajj and Umrah. '
           'Everything you need for a blessed journey.',
-      primaryColor: Color(0xFF2D5F3F),
-      secondaryColor: Color(0xFF5E9B76),
+      primaryColor: const Color(0xFF2D5F3F),
+      secondaryColor: const Color(0xFF5E9B76),
     ),
     _OnboardingData(
       emoji: '📴',
@@ -30,8 +30,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       description:
           'Download once and use forever. No internet needed '
           'after setup. Perfect for when you\'re in Saudi Arabia.',
-      primaryColor: Color(0xFF1A5276),
-      secondaryColor: Color(0xFF2E86C1),
+      primaryColor: const Color(0xFF1A5276),
+      secondaryColor: const Color(0xFF2E86C1),
     ),
     _OnboardingData(
       emoji: '🌍',
@@ -39,8 +39,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       description:
           'Arabic, English, Urdu, Turkish, Indonesian, French, '
           'Bengali, Russian, Persian, Hindi, Hausa & Somali.',
-      primaryColor: Color(0xFF6C3483),
-      secondaryColor: Color(0xFF9B59B6),
+      primaryColor: const Color(0xFF6C3483),
+      secondaryColor: const Color(0xFF9B59B6),
     ),
     _OnboardingData(
       emoji: '📖',
@@ -48,8 +48,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       description:
           'The complete Holy Quran with translation downloads '
           'in the background while you explore the app.',
-      primaryColor: Color(0xFF784212),
-      secondaryColor: Color(0xFFD4AF37),
+      primaryColor: const Color(0xFF784212),
+      secondaryColor: const Color(0xFFD4AF37),
     ),
     _OnboardingData(
       emoji: '✨',
@@ -57,8 +57,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       description:
           'May Allah accept your Hajj and Umrah. '
           'Let\'s start exploring your complete guide.',
-      primaryColor: Color(0xFF2D5F3F),
-      secondaryColor: Color(0xFFD4AF37),
+      primaryColor: const Color(0xFF2D5F3F),
+      secondaryColor: const Color(0xFFD4AF37),
     ),
   ];
 
@@ -108,6 +108,16 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
+
+// Auto advance timer (optional)
+  void _startAutoAdvance() {
+    Future.delayed(const Duration(seconds: 8), () {
+      if (mounted && _currentPage < _pages.length - 1) {
+        _nextPage();
+        _startAutoAdvance();
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final current = _pages[_currentPage];

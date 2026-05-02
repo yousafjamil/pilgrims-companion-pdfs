@@ -78,7 +78,7 @@ class QuranDownloadCubit extends Cubit<QuranDownloadState> {
   /// Start manual download (when user taps Download button)
   Future<void> startDownload() async {
     try {
-      emit(QuranDownloadInProgress(
+      emit(const QuranDownloadInProgress(
         progress: 0.0,
         progressPercentage: '0%',
       ));

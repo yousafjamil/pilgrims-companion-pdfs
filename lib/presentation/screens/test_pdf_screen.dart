@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../core/services/download_service.dart';
 
 class TestPdfScreen extends StatelessWidget {

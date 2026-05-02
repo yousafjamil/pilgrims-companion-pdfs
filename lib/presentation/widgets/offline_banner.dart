@@ -47,9 +47,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8),
             color: Colors.orange.shade700,
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(Icons.wifi_off, color: Colors.white, size: 16),
                 SizedBox(width: 8),
                 Text(

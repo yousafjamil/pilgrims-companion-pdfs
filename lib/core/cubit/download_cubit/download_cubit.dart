@@ -15,8 +15,8 @@ class DownloadCubit extends Cubit<DownloadState> {
 
   Future<void> startDownload(String languageCode) async {
     try {
-      emit(DownloadInProgress(
-        const DownloadProgressModel(
+      emit(const DownloadInProgress(
+        DownloadProgressModel(
           fileName: '',
           totalFiles: 9, // 9 files (excluding Quran)
           currentFileIndex: 0,
