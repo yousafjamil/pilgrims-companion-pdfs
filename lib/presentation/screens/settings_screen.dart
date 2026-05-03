@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pilgrims_companion/core/services/reading_progress_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/app_constants.dart';
 import '../../core/cubit/settings_cubit/settings_cubit.dart';
 import '../../core/cubit/settings_cubit/settings_state.dart';
@@ -257,8 +258,21 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ── Storage Card ──────────────────────────────────────────────────────
-
-  Widget _buildStorageCard(BuildContext context) {
+Future<String> _getCacheSize() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      int totalKeys = 0;
+      for (final key in prefs.getKeys()) {
+        if (key.startsWith('cache_')) {
+          totalKeys++;
+        }
+      }
+      return '$totalKeys sections cached';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+ Widget _buildStorageCard(BuildContext context) {
     final languageCode =
         StorageService.instance.getLanguage() ?? 'en';
 
@@ -270,7 +284,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           // Downloaded Size
           FutureBuilder<String>(
-            future: DownloadService().getDownloadedSize(languageCode),
+            future: _getCacheSize(),
             builder: (context, snapshot) {
               return ListTile(
                 contentPadding: const EdgeInsets.symmetric(

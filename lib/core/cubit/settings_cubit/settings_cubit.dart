@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pilgrims_companion/core/services/haramain_content_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/download_service.dart';
 import '../../services/quran_downloader.dart';
@@ -44,20 +45,41 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> clearCache() async {
     try {
       emit(SettingsLoading());
+      final languageCode =
+          storageService.getLanguage() ?? 'en';
 
-      final languageCode = storageService.getLanguage() ?? 'en';
-
-      // Delete downloaded guide PDFs
-      await downloadService.deleteLanguageContent(languageCode);
+      // Clear all website content cache
+      await HaramainContentService().clearAllCache();
 
       // Mark as not downloaded
-      await storageService.setContentDownloaded(languageCode, false);
+      await storageService.setContentDownloaded(
+        languageCode,
+        false,
+      );
 
       loadSettings();
     } catch (e) {
       emit(SettingsError(e.toString()));
     }
   }
+  
+  // Future<void> clearCache() async {
+  //   try {
+  //     emit(SettingsLoading());
+
+  //     final languageCode = storageService.getLanguage() ?? 'en';
+
+  //     // Delete downloaded guide PDFs
+  //     await downloadService.deleteLanguageContent(languageCode);
+
+  //     // Mark as not downloaded
+  //     await storageService.setContentDownloaded(languageCode, false);
+
+  //     loadSettings();
+  //   } catch (e) {
+  //     emit(SettingsError(e.toString()));
+  //   }
+  // }
 
   // ── Clear Everything Including Quran ───────────────────────────────────
   Future<void> clearAllContent() async {

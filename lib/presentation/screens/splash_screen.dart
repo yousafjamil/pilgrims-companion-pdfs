@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pilgrims_companion/core/services/haramain_content_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/download_service.dart';
 import 'language_screen.dart';
@@ -108,28 +109,56 @@ class _SplashScreenState extends State<SplashScreen>
     if (mounted) _navigateToNextScreen();
   }
 
-  Future<void> _navigateToNextScreen() async {
-    final storageService = StorageService.instance;
-    final selectedLanguage = storageService.getLanguage();
+Future<void> _navigateToNextScreen() async {
+    // Wait for animation
+    await Future.delayed(
+      const Duration(milliseconds: 2800),
+    );
 
     if (!mounted) return;
 
+    final storageService = StorageService.instance;
+    final selectedLanguage =
+        storageService.getLanguage();
+
     if (selectedLanguage != null) {
-      final downloadService = DownloadService();
-      final isDownloaded = await downloadService
-          .isLanguageContentDownloaded(selectedLanguage);
+      // Check if NEW content is downloaded
+      final isDownloaded = await HaramainContentService()
+          .isContentDownloaded();
 
       if (!mounted) return;
 
-      _navigateTo(
-        isDownloaded
-            ? const HomeScreen()
-            : const LanguageScreen(),
-      );
+      if (isDownloaded) {
+        _navigateTo(const HomeScreen());
+      } else {
+        _navigateTo(const LanguageScreen());
+      }
     } else {
       _navigateTo(const LanguageScreen());
     }
   }
+  // Future<void> _navigateToNextScreen() async {
+  //   final storageService = StorageService.instance;
+  //   final selectedLanguage = storageService.getLanguage();
+
+  //   if (!mounted) return;
+
+  //   if (selectedLanguage != null) {
+  //     final downloadService = DownloadService();
+  //     final isDownloaded = await downloadService
+  //         .isLanguageContentDownloaded(selectedLanguage);
+
+  //     if (!mounted) return;
+
+  //     _navigateTo(
+  //       isDownloaded
+  //           ? const HomeScreen()
+  //           : const LanguageScreen(),
+  //     );
+  //   } else {
+  //     _navigateTo(const LanguageScreen());
+  //   }
+  // }
 
   void _navigateTo(Widget screen) {
     Navigator.of(context).pushReplacement(

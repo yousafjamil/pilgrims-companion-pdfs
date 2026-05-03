@@ -1,41 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../app/app_constants.dart';
-import '../../core/services/download_service.dart';
 import '../../core/services/storage_service.dart';
-import 'pdf_viewer_screen.dart';
+import '../../core/services/haramain_content_service.dart';
+import '../../data/models/content_models.dart';
+import 'category_screen.dart';
+import 'content_detail_screen.dart';
+import 'prayer_times_screen.dart';
+import 'webview_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<SearchScreen> createState() =>
+      _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _searchController =
+class _SearchScreenState
+    extends State<SearchScreen> {
+  final TextEditingController _controller =
       TextEditingController();
   final FocusNode _focusNode = FocusNode();
   List<_SearchResult> _results = [];
   bool _isSearching = false;
   String _lastQuery = '';
 
+  String get _langCode =>
+      StorageService.instance.getLanguage() ?? 'en';
+
   @override
   void initState() {
     super.initState();
-    // Auto focus search field
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  // ── Search Logic ─────────────────────────────────────────
+  // ── Search ────────────────────────────────────────
 
   Future<void> _search(String query) async {
     if (query.trim().isEmpty) {
@@ -51,51 +61,102 @@ class _SearchScreenState extends State<SearchScreen> {
 
     setState(() => _isSearching = true);
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(
+      const Duration(milliseconds: 300),
+    );
 
     if (!mounted || query != _lastQuery) return;
 
-    final languageCode =
-        StorageService.instance.getLanguage() ?? 'en';
-    final downloadService = DownloadService();
-    final List<_SearchResult> results = [];
+    final results = <_SearchResult>[];
+    final q = query.toLowerCase();
 
-    // Search through section titles and keywords
-    for (final section in AppConstants.contentSections) {
-      if (section.id == 'quran') continue;
+    // Search through categories
+    for (final cat in AppConstants.homeCategories) {
+      final catTitle =
+          cat.getTitle(_langCode).toLowerCase();
 
-      final title = _getSectionTitle(section.titleKey);
-      final keywords =
-          _getSectionKeywords(section.id);
-
-      // Check if query matches title or keywords
-      if (title.toLowerCase().contains(
-            query.toLowerCase(),
-          ) ||
-          keywords.any(
-            (k) => k.toLowerCase().contains(
-                  query.toLowerCase(),
-                ),
-          )) {
-        // Check if PDF exists
-        final pdfsDir = await downloadService
-            .getPdfsDirectory(languageCode);
-        final fileName =
-            '${section.fileName}_$languageCode.pdf';
-        final filePath = '$pdfsDir/$fileName';
-
+      if (catTitle.contains(q)) {
         results.add(_SearchResult(
-          section: section,
-          title: title,
-          matchedKeyword: keywords.firstWhere(
-            (k) => k.toLowerCase().contains(
-                  query.toLowerCase(),
-                ),
-            orElse: () => title,
+          icon: cat.icon,
+          title: cat.getTitle(_langCode),
+          subtitle: '${cat.subcategories.length}'
+              ' sections',
+          color: Color(cat.color),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CategoryScreen(
+                category: cat,
+                langCode: _langCode,
+              ),
+            ),
           ),
-          filePath: filePath,
         ));
       }
+
+      // Search subcategories
+      for (final sub in cat.subcategories) {
+        final subTitle =
+            sub.getTitle(_langCode).toLowerCase();
+
+        if (subTitle.contains(q)) {
+          results.add(_SearchResult(
+            icon: sub.icon,
+            title: sub.getTitle(_langCode),
+            subtitle: cat.getTitle(_langCode),
+            color: Color(cat.color),
+            onTap: () =>
+                _handleSubTap(sub, cat, _langCode),
+          ));
+        }
+      }
+    }
+
+    // Search in cached news
+    try {
+      final makkahNews =
+          await HaramainContentService()
+              .getNews(ContentSource.makkah);
+      final madinahNews =
+          await HaramainContentService()
+              .getNews(ContentSource.madinah);
+
+      for (final news in [
+        ...makkahNews,
+        ...madinahNews,
+      ]) {
+        final title =
+            news.getTitle(_langCode).toLowerCase();
+        if (title.contains(q) &&
+            results.length < 20) {
+          results.add(_SearchResult(
+            icon: '📰',
+            title: news.getTitle(_langCode),
+            subtitle: news.source ==
+                    ContentSource.makkah
+                ? '🕋 Masjid Al-Haram'
+                : '🕌 Masjid An-Nabawi',
+            color: Theme.of(context)
+                .colorScheme
+                .primary,
+            onTap: () {
+              if (news.url != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => WebViewScreen(
+                      url: news.url!,
+                      title: news.getTitle(
+                        _langCode,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
+          ));
+        }
+      }
+    } catch (e) {
+      debugPrint('Search news error: $e');
     }
 
     if (mounted && query == _lastQuery) {
@@ -106,100 +167,143 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  void _handleSubTap(
+    SubCategory sub,
+    HomeCategory cat,
+    String langCode,
+  ) {
+    if (sub.id.contains('prayer')) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              const PrayerTimesScreen(),
+        ),
+      );
+      return;
+    }
+
+    if (sub.id == 'haram_news' ||
+        sub.id == 'nabawi_news' ||
+        sub.id.contains('imams') ||
+        sub.id.contains('muezzin') ||
+        sub.id.contains('lessons') ||
+        sub.id == 'scholars') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ContentDetailScreen(
+            subCategory: sub,
+            langCode: langCode,
+            categoryColor: Color(cat.color),
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (sub.url.isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WebViewScreen(
+            url: sub.url,
+            title: sub.getTitle(langCode),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _buildSearchField(context),
+        title: TextField(
+          controller: _controller,
+          focusNode: _focusNode,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: _langCode == 'ar'
+                ? 'ابحث في المحتوى...'
+                : 'Search content...',
+            hintStyle: const TextStyle(
+              color: Colors.white60,
+              fontSize: 16,
+            ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+          ),
+          onChanged: _search,
+          textInputAction: TextInputAction.search,
+          onSubmitted: _search,
+        ),
         actions: [
-          if (_searchController.text.isNotEmpty)
+          if (_controller.text.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.clear_rounded),
               onPressed: () {
-                _searchController.clear();
+                _controller.clear();
                 _search('');
                 _focusNode.requestFocus();
               },
             ),
         ],
       ),
-      body: _buildBody(context),
+      body: _buildBody(),
     );
   }
 
-  // ── Search Field ──────────────────────────────────────────
-
-  Widget _buildSearchField(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      focusNode: _focusNode,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 16,
-      ),
-      decoration: const InputDecoration(
-        hintText: 'Search guides...',
-        hintStyle: TextStyle(
-          color: Colors.white60,
-          fontSize: 16,
-        ),
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-      ),
-      onChanged: _search,
-      textInputAction: TextInputAction.search,
-      onSubmitted: _search,
-    );
-  }
-
-  // ── Body ──────────────────────────────────────────────────
-
-  Widget _buildBody(BuildContext context) {
-    // Empty state
-    if (_searchController.text.isEmpty) {
-      return _buildEmptyState(context);
+  Widget _buildBody() {
+    if (_controller.text.isEmpty) {
+      return _buildEmptyState();
     }
 
-    // Loading
     if (_isSearching) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    // No results
     if (_results.isEmpty) {
-      return _buildNoResults(context);
+      return _buildNoResults();
     }
 
-    // Results
-    return _buildResults(context);
+    return _buildResults();
   }
 
-  // ── Empty State ───────────────────────────────────────────
+  // ── Empty State ────────────────────────────────────
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState() {
     final suggestions = [
-      ('🕋', 'Umrah Guide'),
-      ('🌙', 'Hajj Guide'),
-      ('🤲', 'Duas'),
-      ('🏥', 'Health'),
-      ('🎒', 'Packing'),
-      ('⚠️', 'Mistakes'),
+      ('🕋', 'Makkah'),
+      ('🕌', 'Madinah'),
+      ('🕐', 'Prayer'),
+      ('📰', 'News'),
+      ('🎙️', 'Khutbah'),
+      ('👨‍💼', 'Imams'),
+      ('📚', 'Lessons'),
+      ('👨‍🏫', 'Scholars'),
     ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
+          // Suggestions
           Text(
-            'Quick Search',
+            _langCode == 'ar'
+                ? 'بحث سريع'
+                : 'Quick Search',
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+                ?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -208,11 +312,12 @@ class _SearchScreenState extends State<SearchScreen> {
             children: suggestions.map((s) {
               return GestureDetector(
                 onTap: () {
-                  _searchController.text = s.$2;
+                  _controller.text = s.$2;
                   _search(s.$2);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),
@@ -243,7 +348,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Text(
                         s.$2,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: Theme.of(context)
                               .colorScheme
@@ -259,39 +364,62 @@ class _SearchScreenState extends State<SearchScreen> {
 
           const SizedBox(height: 32),
 
+          // All Categories
           Text(
-            'All Guides',
+            _langCode == 'ar'
+                ? 'جميع الأقسام'
+                : 'All Categories',
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+                ?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 16),
 
-          // All sections list
-          ...AppConstants.contentSections
-              .where((s) => s.id != 'quran')
-              .map((section) {
+          ...AppConstants.homeCategories
+              .map((cat) {
             return ListTile(
-              leading: Text(
-                section.icon,
-                style: const TextStyle(fontSize: 28),
-              ),
-              title: Text(
-                _getSectionTitle(section.titleKey),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Color(cat.color)
+                      .withOpacity(0.1),
+                  borderRadius:
+                      BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    cat.icon,
+                    style: const TextStyle(
+                      fontSize: 22,
+                    ),
+                  ),
                 ),
               ),
-              trailing: const Icon(
+              title: Text(
+                cat.getTitle(_langCode),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                '${cat.subcategories.length} sections',
+              ),
+              trailing: Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: 16,
+                size: 14,
+                color: Color(cat.color),
               ),
               onTap: () {
+                HapticFeedback.lightImpact();
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => PdfViewerScreen(
-                      section: section,
+                    builder: (_) => CategoryScreen(
+                      category: cat,
+                      langCode: _langCode,
                     ),
                   ),
                 );
@@ -303,9 +431,9 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ── No Results ────────────────────────────────────────────
+  // ── No Results ─────────────────────────────────────
 
-  Widget _buildNoResults(BuildContext context) {
+  Widget _buildNoResults() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -316,16 +444,24 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No results found',
+            _langCode == 'ar'
+                ? 'لا توجد نتائج'
+                : 'No results found',
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+                ?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try searching for:\numrah, hajj, duas, health, packing',
-            style: Theme.of(context).textTheme.bodyMedium,
+            _langCode == 'ar'
+                ? 'جرب: مكة، مدينة، صلاة، أخبار'
+                : 'Try: makkah, prayer, news, imam',
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium,
             textAlign: TextAlign.center,
           ),
         ],
@@ -333,9 +469,9 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  // ── Results ───────────────────────────────────────────────
+  // ── Results ────────────────────────────────────────
 
-  Widget _buildResults(BuildContext context) {
+  Widget _buildResults() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _results.length,
@@ -343,159 +479,93 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final result = _results[index];
-        return _buildResultCard(context, result);
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leading: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: result.color.withOpacity(0.1),
+                borderRadius:
+                    BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  result.icon,
+                  style: const TextStyle(
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+            ),
+            title: Text(
+              result.title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              result.subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: result.color,
+              ),
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: result.color.withOpacity(0.1),
+                borderRadius:
+                    BorderRadius.circular(20),
+              ),
+              child: Text(
+                _langCode == 'ar' ? 'فتح' : 'Open',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: result.color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              result.onTap();
+            },
+          ),
+        );
       },
     );
   }
-
-  Widget _buildResultCard(
-    BuildContext context,
-    _SearchResult result,
-  ) {
-    return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        leading: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .primary
-                .withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              result.section.icon,
-              style: const TextStyle(fontSize: 28),
-            ),
-          ),
-        ),
-        title: Text(
-          result.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-        ),
-        subtitle: Text(
-          result.matchedKeyword,
-          style: TextStyle(
-            fontSize: 13,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .primary
-                .withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            'Open',
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => PdfViewerScreen(
-                section: result.section,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ── Helpers ───────────────────────────────────────────────
-
-  String _getSectionTitle(String key) {
-    const titles = {
-      'umrah_guide': 'Umrah Guide',
-      'hajj_guide': 'Hajj Guide',
-      'duas_collection': 'Duas Collection',
-      'makkah_guide': 'Makkah Guide',
-      'madinah_guide': 'Madinah Guide',
-      'health_safety': 'Health & Safety',
-      'packing_checklist': 'Packing List',
-      'common_mistakes': 'Common Mistakes',
-      'emergency_info': 'Emergency Info',
-      'quran': 'Holy Quran',
-    };
-    return titles[key] ?? key;
-  }
-
-  List<String> _getSectionKeywords(String id) {
-    const keywords = {
-      'umrah_guide': [
-        'umrah', 'tawaf', 'sai', 'ihram',
-        'halq', 'miqat', 'rituals',
-      ],
-      'hajj_guide': [
-        'hajj', 'arafah', 'mina', 'muzdalifah',
-        'jamarat', 'stoning', 'sacrifice', 'eid',
-      ],
-      'duas': [
-        'dua', 'prayer', 'supplication', 'dhikr',
-        'arabic', 'quran', 'bismillah',
-      ],
-      'makkah_guide': [
-        'makkah', 'mecca', 'kaaba', 'zamzam',
-        'black stone', 'haram', 'safa', 'marwah',
-      ],
-      'madinah_guide': [
-        'madinah', 'medina', 'prophet', 'mosque',
-        'rawdah', 'quba', 'uhud',
-      ],
-      'health_safety': [
-        'health', 'safety', 'heat', 'water',
-        'medicine', 'hospital', 'emergency',
-      ],
-      'packing': [
-        'packing', 'luggage', 'clothes', 'ihram',
-        'checklist', 'what to bring',
-      ],
-      'mistakes': [
-        'mistakes', 'avoid', 'errors', 'wrong',
-        'correct', 'rules', 'important',
-      ],
-      'emergency': [
-        'emergency', 'help', 'contact', 'police',
-        'ambulance', 'lost', 'missing',
-      ],
-    };
-    return keywords[id] ?? [];
-  }
 }
 
-// ── Search Result Model ────────────────────────────────────
+// ── Search Result Model ────────────────────────────────
 
 class _SearchResult {
-  final ContentSection section;
+  final String icon;
   final String title;
-  final String matchedKeyword;
-  final String filePath;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
 
   _SearchResult({
-    required this.section,
+    required this.icon,
     required this.title,
-    required this.matchedKeyword,
-    required this.filePath,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
   });
 }
