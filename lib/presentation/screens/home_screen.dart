@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pilgrims_companion/core/services/risala_service.dart';
+import 'package:pilgrims_companion/presentation/screens/risala_screen.dart';
 import '../../app/app_constants.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/haramain_content_service.dart';
@@ -70,6 +72,211 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
+Widget _buildRisalaPreview(
+    BuildContext context,
+    String langCode,
+  ) {
+    final books =
+        RisalaService.getBooksForLanguage(langCode);
+    final previewBooks = books.take(4).toList();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        16, 0, 16, 8,
+      ),
+      child: Column(
+        children: [
+          // Books horizontal scroll
+          SizedBox(
+            height: 160,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: previewBooks.length,
+              itemBuilder: (context, index) {
+                final book = previewBooks[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const RisalaScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 110,
+                    margin: const EdgeInsets.only(
+                      right: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF2D5F3F),
+                          Color(0xFF1A3D28),
+                        ],
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(14),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Column(
+                            mainAxisAlignment:
+                                MainAxisAlignment
+                                    .center,
+                            children: [
+                              Text(
+                                book.icon,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding:
+                                    const EdgeInsets
+                                        .symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: Text(
+                                  book.title,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight:
+                                        FontWeight.w600,
+                                    height: 1.3,
+                                  ),
+                                  textAlign:
+                                      TextAlign.center,
+                                  maxLines: 3,
+                                  overflow:
+                                      TextOverflow
+                                          .ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding:
+                                const EdgeInsets.all(
+                              3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFFD4AF37,
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(
+                                4,
+                              ),
+                            ),
+                            child: const Text(
+                              'PRH',
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.white,
+                                fontWeight:
+                                    FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // View all button
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const RisalaScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2D5F3F)
+                    .withOpacity(0.08),
+                borderRadius:
+                    BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF2D5F3F)
+                      .withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D5F3F)
+                          .withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '📚',
+                        style:
+                            TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          langCode == 'ar'
+                              ? 'مكتبة رسالة الحرمين'
+                              : 'Risala Al-Haramain Library',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          '${books.length} books in your language',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: Color(0xFF2D5F3F),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final langCode =
@@ -147,6 +354,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
 
                 // ── Category Cards ───────────────
+         
              
 // ── Category Cards ───────────────
 SliverPadding(
@@ -213,6 +421,30 @@ SliverPadding(
                         ),
                       );
                     },
+                  ),
+                ),
+                // ── Risala Library ────────────────
+                SliverToBoxAdapter(
+                  child: _buildSectionLabel(
+                    context,
+                    emoji: '📚',
+                    title: 'Risala Library',
+                    titleAr: 'مكتبة رسالة الحرمين',
+                    langCode: langCode,
+                    onMore: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const RisalaScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildRisalaPreview(
+                    context,
+                    langCode,
                   ),
                 ),
                 SliverToBoxAdapter(

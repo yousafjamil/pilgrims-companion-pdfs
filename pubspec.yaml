@@ -23,6 +23,7 @@ dependencies:
   
   # HTTP requests for news & prayer times
   http: ^1.2.0
+  html: ^0.15.6
 
 dev_dependencies:
   flutter_test:
