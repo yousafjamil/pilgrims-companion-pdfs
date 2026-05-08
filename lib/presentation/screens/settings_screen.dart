@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pilgrims_companion/presentation/screens/onboarding_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/app_constants.dart';
 import '../../core/cubit/settings_cubit/settings_cubit.dart';
@@ -994,18 +995,18 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (_) => const LanguageScreen(),
-                ),
-                (route) => false,
-              );
-            },
-            child: const Text('Continue'),
-          ),
+        ElevatedButton(
+  onPressed: () {
+    Navigator.pop(dialogContext);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => const OnboardingScreen(),
+      ),
+      (route) => false,
+    );
+  },
+  child: const Text('Continue'),
+),
         ],
       ),
     );
